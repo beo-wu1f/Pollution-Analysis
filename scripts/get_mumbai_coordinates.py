@@ -19,12 +19,11 @@ response = requests.get(url)
 if response.status_code == 200:
     # Parse JSON response
     data = response.json()
-    data_parse = json.loads(data)
-    print(data_parse)
-    print("\nLatitude:", data_parse["lat"])
-    print("Longitude:", data_parse["lon"])
-    if "local_names" in data:
-        print("\nLocal name in Hindi:", data["local_names"]["hi"]
+    print(data)
+    print("\nLatitude:", data[0]["lat"])
+    print("Longitude:", data[0]["lon"])
+    if "local_names" in data[0]:
+        print("\nLocal name in Hindi:", data[0]["local_names"]["hi"])
 
 else:
     # Handle HTTP errors
