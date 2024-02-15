@@ -1,5 +1,5 @@
 import requests
-import os  # Import the os module to access environment variables
+import os
 
 # Access the API key from the environment variable
 api_key = os.environ.get("OPENWEATHERMAP_API_KEY")
@@ -14,20 +14,13 @@ url = f"http://api.openweathermap.org/geo/1.0/direct?q={city_name},{country_code
 # Send API request
 response = requests.get(url)
 
+# Check response status
 if response.status_code == 200:
     # Parse JSON response
     data = response.json()
 
-    # Check if any results found
-    if data["count"] > 0:
-        # Get the first result (assuming Mumbai is the intended location)
-        location = data["list"][0]
-
-        # Print coordinates
-        print("Latitude:", location["lat"])
-        print("Longitude:", location["lon"])
-    else:
-        print("No results found for", city_name)
+    # Print the entire JSON data
+    print(data)
 else:
     # Handle HTTP errors
     print(f"Error: {response.status_code}")
