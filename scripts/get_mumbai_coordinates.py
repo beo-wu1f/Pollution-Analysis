@@ -1,5 +1,6 @@
 import requests
 import os
+import json
 
 # Access the API key from the environment variable
 api_key = os.environ.get("OPENWEATHERMAP_API_KEY")
@@ -18,12 +19,13 @@ response = requests.get(url)
 if response.status_code == 200:
     # Parse JSON response
     data = response.json()
+    data_parse = json.loads(data)
+    print(data_parse)
+    print("\nLatitude:", data_parse["lat"])
+    print("Longitude:", data_parse["lon"])
+    if "local_names" in data:
+        print("\nLocal name in Hindi:", data["local_names"]["hi"]
 
-    # Print the coordinates
-    lat = data['lat']
-    lon = data['lon']
-    print lat
-    print lon
 else:
     # Handle HTTP errors
     print(f"Error: {response.status_code}")
