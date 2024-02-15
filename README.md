@@ -1,10 +1,10 @@
 # Weather-analysis
 
- ## My first repository - A data engineering project about analysing weather
+ ## My first repository - A data engineering project about analysing pollution
 
-This repository delves into weather analysis using Python, focusing on:
+This repository delves into pollution analysis using Python, focusing on:
 
-* Data-driven discovery: Unearthing patterns and trends in weather data.
+* Data-driven discovery: Unearthing patterns and trends in pollution data.
 Visual storytelling: Bringing insights to life with captivating visualizations.
 Feature development: Creating practical tools for data enthusiasts.
 
