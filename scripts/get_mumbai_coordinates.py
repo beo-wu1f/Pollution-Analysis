@@ -19,8 +19,11 @@ if response.status_code == 200:
     # Parse JSON response
     data = response.json()
 
-    # Print the entire JSON data
-    print(data)
+    # Print the coordinates
+    lat = data['lat']
+    lon = data['lon']
+    print lat
+    print lon
 else:
     # Handle HTTP errors
     print(f"Error: {response.status_code}")
