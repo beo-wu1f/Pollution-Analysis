@@ -1,6 +1,7 @@
 import requests
 import os
 import json
+import matplotlib.pyplot as plt
 
 # API key (change placeholder with your actual key)
 api_key = os.environ.get("OPENWEATHERMAP_API_KEY")
@@ -32,9 +33,38 @@ if geo_response.status_code == 200:
 
     # Check response status
     if air_response.status_code == 200:
-        # Print entire JSON response without parsing
-        print(air_response.text)
+        # Parse JSON response
+        air_data = air_response.json()
+
+        # Extract pollutant concentrations
+        concentrations = []
+        pollutants = ["CO", "NO", "NO2", "O3", "SO2", "PM2.5", "PM10", "NH3"]
+        for pollutant in pollutants:
+            concentrations.append(air_data["list"][0]["components"][pollutant])
+
+        # Display data
+        print("Air pollutant concentrations in", city_name, country_code, ":\n")
+        for i, pollutant in enumerate(pollutants):
+            print(f"{pollutant}: {concentrations[i]} μg/m³")
+
+        # Create and display visualization
+        plt.figure(figsize=(10, 6))
+        plt.bar(pollutants, concentrations)
+        plt.xlabel("Pollutant")
+        plt.ylabel("Concentration (μg/m³)")
+        plt.title("Air Pollutant Concentrations in Mumbai, India")
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+
+        # Save the visualization as a PNG image (optional)
+        plt.savefig("air_pollution_visualization.png")
+
+        # Display the visualization in a separate window
+        plt.show()
+
     else:
         print(f"Error: Air pollution API returned {air_response.status_code}")
+
 else:
     print(f"Error: Geocoding API returned {geo_response.status_code}")
+
