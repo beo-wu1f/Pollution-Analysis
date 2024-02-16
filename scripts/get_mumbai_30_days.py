@@ -58,10 +58,8 @@ if geo_response.status_code == 200:
 
         # Print pollution data for each day
         for day_data in past_data:
-            print(f"\nAir pollution data for {day_data['dt_iso']}:")
-            for pollutant in pollutants:
-                concentration = day_data["list"][0]["components"][pollutant]
-                print(f"{pollutant}: {concentration} μg/m³")
+            print("\nDay Data:")
+            print(day_data)
 
     except Exception as e:
         print(f"Error: {e}")
