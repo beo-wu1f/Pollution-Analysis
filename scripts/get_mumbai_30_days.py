@@ -1,7 +1,7 @@
 import requests
 import os
 import json
-from datetime import datetime
+import datetime
 
 pollutants = ["co", "no", "no2", "o3", "so2", "pm2_5", "pm10", "nh3"]
 
@@ -40,11 +40,11 @@ if geo_response.status_code == 200:
         past_data = []
         for i in range(30):
             # Calculate date for past day
-            past_date = datetime.date.today() - datetime.timedelta(days=i)
+            past_date = datetime.datetime.today().date() - datetime.timedelta(days=i)
             past_date_str = past_date.strftime("%Y-%m-%d")
 
             # Construct historical air pollution API url
-            historical_url = f"http://api.openweathermap.org/data/2.5/air_pollution/historical?lat={latitude}&lon={longitude}&dt={past_date_str}&appid={api_key}"
+            historical_url = f"http://api.openweathermap.org/data/2.5/air_pollution/history?lat={latitude}&lon={longitude}&start={past_date_str}&end={past_date_str}&appid={api_key}"
 
             # Send historical data request
             historical_response = requests.get(historical_url)
@@ -57,4 +57,13 @@ if geo_response.status_code == 200:
 
         # Print pollution data for each day
         for day_data in past_data:
-            print(f"\nAir pollution data
+            print(f"\nAir pollution data for {day_data['dt_iso']}:")
+            for pollutant in pollutants:
+                concentration = day_data["list"][0]["components"][pollutant]
+                print(f"{pollutant}: {concentration} μg/m³")
+
+    except Exception as e:
+        print(f"Error: {e}")
+
+else:
+    print(f"Error: Geocoding API returned status code {geo_response.status_code}")
