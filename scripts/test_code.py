@@ -2,6 +2,7 @@ import requests
 import os
 import json
 import datetime
+import matplotlib.pyplot as plt
 
 pollutants = ["co", "no", "no2", "o3", "so2", "pm2_5", "pm10", "nh3"]
 
