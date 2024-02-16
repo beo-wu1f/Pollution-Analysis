@@ -69,22 +69,21 @@ if geo_response.status_code == 200:
                 print(f"Error fetching historical data for {past_date.strftime('%Y-%m-%d')}: {historical_response.status_code}")
 
         # Calculate and print daily averages
-        for day_data in all_data:
             all_dates = []
             all_averages = []
-    for day_data in all_data:
-        daily_averages = calculate_daily_averages(day_data)
-        date = list(daily_averages.keys())[0]  
-        all_dates.append(date)
-        all_averages.append(list(daily_averages.values())[0]) 
+        for day_data in all_data:
+            daily_averages = calculate_daily_averages(day_data)
+            date = list(daily_averages.keys())[0]  
+            all_dates.append(date)
+            all_averages.append(list(daily_averages.values())[0]) 
 
-        # Print daily averages (you can remove this if you only want the plot)
-        print(f"\nDaily Averages for {date}:")
-        print(daily_averages[date])
+            # Print daily averages (you can remove this if you only want the plot)
+            print(f"\nDaily Averages for {date}:")
+            print(daily_averages[date])
 
-    # Plot each pollutant
-    for pollutant, values in all_averages[0].items():  
-        plt.plot(all_dates, [data[pollutant] for data in all_averages], label=pollutant)
+        # Plot each pollutant
+        for pollutant, values in all_averages[0].items():  
+            plt.plot(all_dates, [data[pollutant] for data in all_averages], label=pollutant)
 
     except Exception as e:
         print(f"Error: {e}")
