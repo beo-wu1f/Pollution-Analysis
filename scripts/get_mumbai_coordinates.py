@@ -3,6 +3,8 @@ import os
 import json
 import matplotlib.pyplot as plt
 
+pollutants = ["co", "no", "no2", "o3", "so2", "pm2_5", "pm10", "nh3"]
+
 def fetch_air_pollution_data(latitude, longitude, api_key):
     air_url = f"http://api.openweathermap.org/data/2.5/air_pollution?lat={latitude}&lon={longitude}&appid={api_key}"
     air_response = requests.get(air_url)
