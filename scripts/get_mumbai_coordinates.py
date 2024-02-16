@@ -38,7 +38,7 @@ if geo_response.status_code == 200:
 
         # Extract pollutant concentrations
         concentrations = []
-        pollutants = ["CO", "NO", "NO2", "O3", "SO2", "PM2.5", "PM10", "NH3"]
+        pollutants = ["co", "NO", "NO2", "O3", "SO2", "PM2.5", "PM10", "NH3"]
         for pollutant in pollutants:
             concentrations.append(air_data["list"][0]["components"][pollutant])
 
