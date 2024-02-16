@@ -3,7 +3,26 @@ import os
 import json
 import matplotlib.pyplot as plt
 
-# API key (change placeholder with your actual key)
+def fetch_air_pollution_data(latitude, longitude, api_key):
+    air_url = f"http://api.openweathermap.org/data/2.5/air_pollution?lat={latitude}&lon={longitude}&appid={api_key}"
+    air_response = requests.get(air_url)
+    if air_response.status_code == 200:
+        return air_response.json()
+    else:
+        raise Exception(f"Air pollution API returned status code {air_response.status_code}")
+
+def plot_air_pollution_data(city_name, country_code, pollutants, concentrations):
+    plt.figure(figsize=(10, 6))
+    plt.bar(pollutants, concentrations)
+    plt.xlabel("Pollutant")
+    plt.ylabel("Concentration (μg/m³)")
+    plt.title(f"Air Pollutant Concentrations in {city_name}, {country_code}")
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.savefig("air_pollution_visualization.png")
+    plt.show()
+
+# Access the API key from the environment variable
 api_key = os.environ.get("OPENWEATHERMAP_API_KEY")
 
 # City information
@@ -25,22 +44,11 @@ if geo_response.status_code == 200:
     latitude = geo_data[0]["lat"]
     longitude = geo_data[0]["lon"]
 
-    # Air pollution API endpoint
-    air_url = f"http://api.openweathermap.org/data/2.5/air_pollution?lat={latitude}&lon={longitude}&appid={api_key}"
-
-    # Send air pollution request
-    air_response = requests.get(air_url)
-
-    # Check response status
-    if air_response.status_code == 200:
-        # Parse JSON response
-        air_data = air_response.json()
+    try:
+        air_data = fetch_air_pollution_data(latitude, longitude, api_key)
 
         # Extract pollutant concentrations
-        concentrations = []
-        pollutants = ["co", "no", "no2", "o3", "so2", "pm2_5", "pm10", "nh3"]
-        for pollutant in pollutants:
-            concentrations.append(air_data["list"][0]["components"][pollutant])
+        concentrations = [air_data["list"][0]["components"][pollutant] for pollutant in pollutants]
 
         # Display data
         print("Air pollutant concentrations in", city_name, country_code, ":\n")
@@ -48,23 +56,10 @@ if geo_response.status_code == 200:
             print(f"{pollutant}: {concentrations[i]} μg/m³")
 
         # Create and display visualization
-        plt.figure(figsize=(10, 6))
-        plt.bar(pollutants, concentrations)
-        plt.xlabel("Pollutant")
-        plt.ylabel("Concentration (μg/m³)")
-        plt.title("Air Pollutant Concentrations in Mumbai, India")
-        plt.xticks(rotation=45)
-        plt.tight_layout()
+        plot_air_pollution_data(city_name, country_code, pollutants, concentrations)
 
-        # Save the visualization as a PNG image (optional)
-        plt.savefig("air_pollution_visualization.png")
-
-        # Display the visualization in a separate window
-        plt.show()
-
-    else:
-        print(f"Error: Air pollution API returned {air_response.status_code}")
+    except Exception as e:
+        print(f"Error: {e}")
 
 else:
-    print(f"Error: Geocoding API returned {geo_response.status_code}")
-
+    print(f"Error: Geocoding API returned status code {geo_response.status_code}")
