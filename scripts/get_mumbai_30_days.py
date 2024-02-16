@@ -41,10 +41,11 @@ if geo_response.status_code == 200:
         for i in range(30):
             # Calculate date for past day
             past_date = datetime.datetime.today().date() - datetime.timedelta(days=i)
-            past_date_str = past_date.strftime("%Y-%m-%d")
+            start_timestamp = int(datetime.datetime(past_date.year, past_date.month, past_date.day, 0, 0).timestamp())
+            end_timestamp = int(datetime.datetime(past_date.year, past_date.month, past_date.day, 23, 59).timestamp())
 
             # Construct historical air pollution API url
-            historical_url = f"http://api.openweathermap.org/data/2.5/air_pollution/history?lat={latitude}&lon={longitude}&start={past_date_str}&end={past_date_str}&appid={api_key}"
+            historical_url = f"http://api.openweathermap.org/data/2.5/air_pollution/history?lat={latitude}&lon={longitude}&start={start_timestamp}&end={end_timestamp}&appid={api_key}"
 
             # Send historical data request
             historical_response = requests.get(historical_url)
@@ -53,7 +54,7 @@ if geo_response.status_code == 200:
                 historical_data = historical_response.json()
                 past_data.append(historical_data)
             else:
-                print(f"Error fetching historical data for {past_date_str}: {historical_response.status_code}")
+                print(f"Error fetching historical data for {past_date.strftime('%Y-%m-%d')}: {historical_response.status_code}")
 
         # Print pollution data for each day
         for day_data in past_data:
