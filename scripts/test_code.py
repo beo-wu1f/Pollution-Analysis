@@ -1,20 +1,17 @@
 import requests
 import os
-from datetime import datetime, timedelta
 import json
+import datetime
 
 pollutants = ["co", "no", "no2", "o3", "so2", "pm2_5", "pm10", "nh3"]
-time_slots = ['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00']
 
-def fetch_air_pollution_data(latitude, longitude, api_key, date_str, time_str):
-    historical_url = f"http://api.openweathermap.org/data/2.5/air_pollution/history?lat={latitude}&lon={longitude}&start={date_str}&end={date_str}&appid={api_key}"
-    air_response = requests.get(historical_url)
+def fetch_air_pollution_data(latitude, longitude, api_key):
+    air_url = f"http://api.openweathermap.org/data/2.5/air_pollution?lat={latitude}&lon={longitude}&appid={api_key}"
+    air_response = requests.get(air_url)
     if air_response.status_code == 200:
-        air_data = air_response.json()
-        for slot in air_data['list']:
-            if datetime.utcfromtimestamp(slot['dt']).strftime('%H:%M') == time_str:
-                return slot
-    return None
+        return air_response.json()
+    else:
+        raise Exception(f"Air pollution API returned status code {air_response.status_code}")
 
 # Access the API key from the environment variable
 api_key = os.environ.get("OPENWEATHERMAP_API_KEY")
@@ -42,19 +39,27 @@ if geo_response.status_code == 200:
         # Fetch air pollution data for last 10 days
         past_data = []
         for i in range(10):
-            past_date = datetime.now() - timedelta(days=i)
-            date_str = past_date.strftime("%Y-%m-%d")
-            for time_slot in time_slots:
-                data = fetch_air_pollution_data(latitude, longitude, api_key, date_str, time_slot)
-                if data:
-                    past_data.append(data)
+            # Calculate date for past day
+            past_date = datetime.datetime.today().date() - datetime.timedelta(days=i)
+            start_timestamp = int(datetime.datetime(past_date.year, past_date.month, past_date.day, 0, 0).timestamp())
+            end_timestamp = int(datetime.datetime(past_date.year, past_date.month, past_date.day, 23, 59).timestamp())
 
-        # Print pollution data for each time slot
+            # Construct historical air pollution API url
+            historical_url = f"http://api.openweathermap.org/data/2.5/air_pollution/history?lat={latitude}&lon={longitude}&start={start_timestamp}&end={end_timestamp}&appid={api_key}"
+
+            # Send historical data request
+            historical_response = requests.get(historical_url)
+
+            if historical_response.status_code == 200:
+                historical_data = historical_response.json()
+                past_data.append(historical_data)
+            else:
+                print(f"Error fetching historical data for {past_date.strftime('%Y-%m-%d')}: {historical_response.status_code}")
+
+        # Print pollution data for each day
         for day_data in past_data:
-            print(f"\nAir pollution data for {datetime.utcfromtimestamp(day_data['dt']).strftime('%Y-%m-%d %H:%M')}:")
-            for pollutant in pollutants:
-                concentration = day_data["components"][pollutant]
-                print(f"{pollutant}: {concentration} μg/m³")
+            print("\nDay Data:")
+            print(day_data)
 
     except Exception as e:
         print(f"Error: {e}")
