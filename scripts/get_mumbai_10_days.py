@@ -81,10 +81,13 @@ if geo_response.status_code == 200:
             # Print daily averages (you can remove this if you only want the plot)
             print(f"\nDaily Averages for {date}:")
             print(daily_averages[date])
-
+        # Generate the filename with a timestamp
+        timestamp_str = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        filename = f"mumbai_air_pollution_{timestamp_str}.png"
         # Plot each pollutant
         for pollutant, values in all_averages[0].items():  
             plt.plot(all_dates, [data[pollutant] for data in all_averages], label=pollutant)
+        plt.savefig(filename) 
 
     except Exception as e:
         print(f"Error: {e}")
