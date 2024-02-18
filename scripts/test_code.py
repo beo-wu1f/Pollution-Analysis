@@ -99,9 +99,9 @@ def create_and_save_data(city_name, country_code, api_key, range):
                     )''')
 
                     for date, air_quality in daily_averages.items():
-                    c.execute("INSERT INTO air_quality VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                            (date, air_quality['co'], air_quality['no'], air_quality['no2'], air_quality['o3'], 
-                             air_quality['so2'], air_quality['pm2_5'], air_quality['pm10'], air_quality['nh3']))
+                        c.execute("INSERT INTO air_quality VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                                (date, air_quality['co'], air_quality['no'], air_quality['no2'], air_quality['o3'], 
+                                 air_quality['so2'], air_quality['pm2_5'], air_quality['pm10'], air_quality['nh3']))
 
                     conn.commit()
                     conn.close()
