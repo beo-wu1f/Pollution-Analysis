@@ -2,17 +2,11 @@ import requests
 import os
 import json
 import datetime
-import matplotlib.pyplot as plt
+import pandas as pd
+import sqlite3
+import glob
 
 pollutants = ["co", "no", "no2", "o3", "so2", "pm2_5", "pm10", "nh3"]
-
-def fetch_air_pollution_data(latitude, longitude, api_key):
-    air_url = f"http://api.openweathermap.org/data/2.5/air_pollution?lat={latitude}&lon={longitude}&appid={api_key}"
-    air_response = requests.get(air_url)
-    if air_response.status_code == 200:
-        return air_response.json()
-    else:
-        raise Exception(f"Air pollution API returned status code {air_response.status_code}")
 
 def calculate_daily_averages(data):
     daily_averages = {}
@@ -33,74 +27,93 @@ def calculate_daily_averages(data):
 
     return daily_averages
 
-# Access the API key from the environment variable
-api_key = os.environ.get("OPENWEATHERMAP_API_KEY")
-
 # City information
 city_name = "Mumbai"
 country_code = "IN"
 
+# Access the API key from the environment variable
+api_key = os.environ.get("OPENWEATHERMAP_API_KEY")
+
 # Geocoding API endpoint
 geo_url = f"http://api.openweathermap.org/geo/1.0/direct?q={city_name},{country_code}&appid={api_key}"
 
-# Send geocoding request
-geo_response = requests.get(geo_url)
+# number of days you want data of
+range = 10
 
-# Check response status
-if geo_response.status_code == 200:
-    geo_data = geo_response.json()
-    latitude = geo_data[0]["lat"]
-    longitude = geo_data[0]["lon"]
+def create_and_save_data(city_name, country_code, api_key, range):
+    """Fetches air pollution data, creates CSV, and stores data in SQLite."""
+    # Send geocoding request
+    geo_response = requests.get(geo_url)
 
-    try:
-        all_data = [] 
-        for i in range(10):
-            past_date = datetime.datetime.today().date() - datetime.timedelta(days=i)
-            start_timestamp = int(datetime.datetime(past_date.year, past_date.month, past_date.day, 0, 0).timestamp())
-            end_timestamp = int(datetime.datetime(past_date.year, past_date.month, past_date.day, 23, 59).timestamp())
+    # Check response status
+    if geo_response.status_code == 200:
+        geo_data = geo_response.json()
+        latitude = geo_data[0]["lat"]
+        longitude = geo_data[0]["lon"]
+        
+        try:
+            for i in range(range):
+                # Calculate timestamps for a single day
+                past_date = datetime.datetime.today().date() - datetime.timedelta(days=i)
+                start_timestamp = int(datetime.datetime(past_date.year, past_date.month, past_date.day, 0, 0).timestamp())
+                end_timestamp = int(datetime.datetime(past_date.year, past_date.month, past_date.day, 23, 59).timestamp())
 
-            historical_url = f"http://api.openweathermap.org/data/2.5/air_pollution/history?lat={latitude}&lon={longitude}&start={start_timestamp}&end={end_timestamp}&appid={api_key}"
+                historical_url = f"http://api.openweathermap.org/data/2.5/air_pollution/history?lat={latitude}&lon={longitude}&start={start_timestamp}&end={end_timestamp}&appid={api_key}"
+                historical_response = requests.get(historical_url)
 
-            historical_response = requests.get(historical_url)
+                if historical_response.status_code == 200:
+                    historical_data = historical_response.json()
 
-            if historical_response.status_code == 200:
-                historical_data = historical_response.json()
-                all_data.append(historical_data) 
-            else:
-                print(f"Error fetching historical data for {past_date.strftime('%Y-%m-%d')}: {historical_response.status_code}")
+                    # Calculate daily averages for this day's data
+                    daily_averages = calculate_daily_averages(historical_data)  
+                  
+                    # Create a directory for daily CSVs 
+                    data_dir = past_date.strftime('%Y-%m-%d') 
+                    os.makedirs(data_dir, exist_ok=True)
 
-        # Calculate and print daily averages
-            all_dates = []
-            all_averages = []
-        for day_data in all_data:
-            daily_averages = calculate_daily_averages(day_data)
-            date = list(daily_averages.keys())[0]  
-            all_dates.append(date)
-            all_averages.append(list(daily_averages.values())[0]) 
+                    # Generate CSV for this day and save in the directory
+                    for date, air_quality in daily_averages.items():
+                        df = pd.DataFrame(air_quality, index=[0])
+                        csv_path = os.path.join(data_dir, f"{date}.csv")
+                        df.to_csv(csv_path, index=False)
+                    all_files = glob.glob('*.csv')
+                    combined_df = pd.concat([pd.read_csv(f) for f in all_files])
+                    combined_df.to_csv(os.path.join(data_dir, 'combined_air_quality.csv'), index=False)
 
-            # Print daily averages (you can remove this if you only want the plot)
-            print(f"\nDaily Averages for {date}:")
-            print(daily_averages[date])
 
-        # Plot each pollutant
-        for pollutant, values in all_averages[0].items():  
-            plt.plot(all_dates, [data[pollutant] for data in all_averages], label=pollutant)
+                    # SQLite database handling
+                    db_path = os.path.join(data_dir, 'air_quality.db')
+                    conn = sqlite3.connect(db_path)
+                    c = conn.cursor()
 
-    except Exception as e:
+                    c.execute('''CREATE TABLE IF NOT EXISTS air_quality (
+                    date text,
+                    co real,
+                    no real,
+                    no2 real,
+                    o3 real,
+                    so2 real,
+                    pm2_5 real,
+                    pm10 real,
+                    nh3 real
+                    )''')
+
+                    for date, air_quality in daily_averages.items():
+                    c.execute("INSERT INTO air_quality VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                            (date, air_quality['co'], air_quality['no'], air_quality['no2'], air_quality['o3'], 
+                             air_quality['so2'], air_quality['pm2_5'], air_quality['pm10'], air_quality['nh3']))
+
+                    conn.commit()
+                    conn.close()
+
+                else:
+                    print(f"Error fetching historical data for {past_date.strftime('%Y-%m-%d')}: {historical_response.status_code}")
+                    # Combine CSVs 
+
+
+        except Exception as e:
         print(f"Error: {e}")
 
-else:
-    print(f"Error: Geocoding API returned status code {geo_response.status_code}")
+    else:
+        print(f"Error: Geocoding API returned status code {geo_response.status_code}")        
 
-
-# Prepare data for plotting and calculate daily averages (combined functionality)
-
-
-plt.xlabel("Date")
-plt.ylabel("Average Pollutant Concentration")
-plt.title("Average Air Pollution Over 10 Days in Mumbai")
-plt.legend()
-plt.grid(True)
-plt.xticks(rotation=45, ha='right') 
-plt.tight_layout()  
-plt.show()
