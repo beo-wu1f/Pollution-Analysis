@@ -126,4 +126,3 @@ def create_and_save_data(city_name, country_code, api_key, num_days):
         print(f"Error: Geocoding API returned status code {geo_response.status_code}")        
 
 create_and_save_data(city_name, country_code, api_key, num_days)
-
