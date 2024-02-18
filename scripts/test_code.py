@@ -78,8 +78,9 @@ def create_and_save_data(city_name, country_code, api_key, num_days):
                         df = pd.DataFrame(air_quality, index=[0])
                         csv_path = os.path.join(data_dir, f"{date}.csv")
                         df.to_csv(csv_path, index=False)
+                    # Combine CSVs
                     all_files = glob.glob(os.path.join(data_dir, '*.csv'))
-                    combined_df = pd.concat([pd.read_csv(f) for f in all_files])
+                    combined_df = pd.concat([pd.read_csv(f) for f in all_files], ignore_index=True)
                     combined_df.to_csv(os.path.join(data_dir, 'combined_air_quality.csv'), index=False)
 
 
