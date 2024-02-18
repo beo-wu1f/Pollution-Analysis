@@ -38,9 +38,9 @@ api_key = os.environ.get("OPENWEATHERMAP_API_KEY")
 geo_url = f"http://api.openweathermap.org/geo/1.0/direct?q={city_name},{country_code}&appid={api_key}"
 
 # number of days you want data of
-range = 10
+num_days = 10
 
-def create_and_save_data(city_name, country_code, api_key, range):
+def create_and_save_data(city_name, country_code, api_key, num_days):
     """Fetches air pollution data, creates CSV, and stores data in SQLite."""
     # Send geocoding request
     geo_response = requests.get(geo_url)
@@ -52,7 +52,7 @@ def create_and_save_data(city_name, country_code, api_key, range):
         longitude = geo_data[0]["lon"]
         
         try:
-            for i in range(range):
+            for i in range(num_days):
                 # Calculate timestamps for a single day
                 past_date = datetime.datetime.today().date() - datetime.timedelta(days=i)
                 start_timestamp = int(datetime.datetime(past_date.year, past_date.month, past_date.day, 0, 0).timestamp())
@@ -118,4 +118,4 @@ def create_and_save_data(city_name, country_code, api_key, range):
     else:
         print(f"Error: Geocoding API returned status code {geo_response.status_code}")        
 
-create_and_save_data(city_name, country_code, api_key, range)
+create_and_save_data(city_name, country_code, api_key, num_days)
