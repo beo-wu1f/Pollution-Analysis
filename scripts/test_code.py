@@ -40,6 +40,12 @@ geo_url = f"http://api.openweathermap.org/geo/1.0/direct?q={city_name},{country_
 # number of days you want data of
 num_days = 10
 
+ # Create a directory with today's date in YYYY-MM-DD format
+today = datetime.datetime.today().strftime("%Y-%m-%d")
+data_dir = os.path.join("data", today)
+os.makedirs(data_dir, exist_ok=True)
+print(f"Directory created: {data_dir}")
+
 def create_and_save_data(city_name, country_code, api_key, num_days):
     """Fetches air pollution data, creates CSV, and stores data in SQLite."""
     # Send geocoding request
@@ -54,7 +60,7 @@ def create_and_save_data(city_name, country_code, api_key, num_days):
         try:
             for i in range(num_days):
                 # Calculate timestamps for a single day
-                past_date = datetime.datetime.today().date() - datetime.timedelta(days=i)
+                past_date = datetime.datetime.today().strftime('%Y-%m-%d') - datetime.timedelta(days=i)
                 start_timestamp = int(datetime.datetime(past_date.year, past_date.month, past_date.day, 0, 0).timestamp())
                 end_timestamp = int(datetime.datetime(past_date.year, past_date.month, past_date.day, 23, 59).timestamp())
 
@@ -67,10 +73,6 @@ def create_and_save_data(city_name, country_code, api_key, num_days):
                     # Calculate daily averages for this day's data
                     daily_averages = calculate_daily_averages(historical_data)  
                   
-                    # Create a directory for daily CSVs 
-                    data_dir = past_date.strftime('%Y-%m-%d') 
-                    os.makedirs(data_dir, exist_ok=True)
-
                     # Generate CSV for this day and save in the directory
                     for date, air_quality in daily_averages.items():
                         df = pd.DataFrame(air_quality, index=[0])
