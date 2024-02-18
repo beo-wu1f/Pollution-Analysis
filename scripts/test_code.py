@@ -105,6 +105,7 @@ def create_and_save_data(city_name, country_code, api_key, range):
 
                     conn.commit()
                     conn.close()
+                    print("code executed")
 
                 else:
                     print(f"Error fetching historical data for {past_date.strftime('%Y-%m-%d')}: {historical_response.status_code}")
