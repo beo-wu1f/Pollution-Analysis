@@ -56,6 +56,7 @@ def create_and_save_data(city_name, country_code, api_key, num_days):
         geo_data = geo_response.json()
         latitude = geo_data[0]["lat"]
         longitude = geo_data[0]["lon"]
+        print("Latitudes and Longitudes received")
         
         try:
             # Create an empty DataFrame to store all daily data
@@ -74,13 +75,15 @@ def create_and_save_data(city_name, country_code, api_key, num_days):
                     historical_data = historical_response.json()
 
                     # Calculate daily averages for this day's data
-                    daily_averages = calculate_daily_averages(historical_data)  
+                    daily_averages = calculate_daily_averages(historical_data) 
+                    print("Daily averages calculated")
                   
                     # Generate CSV for this day and save in the directory
                     for date, air_quality in daily_averages.items():
                         df = pd.DataFrame(air_quality, index=[0])
                         csv_path = os.path.join(data_dir, f"{date}.csv")
                         df.to_csv(csv_path, index=False)
+                        print(" CSV Created")
                     
                 else:
                     print(f"Error fetching historical data for {past_date.strftime('%Y-%m-%d')}: {historical_response.status_code}")
@@ -114,7 +117,7 @@ def create_and_save_data(city_name, country_code, api_key, num_days):
 
             conn.commit()
             conn.close()
-            print("code executed")
+            print("code executed, database created")
 
         except Exception as e:
             print(f"Error: {e}")
