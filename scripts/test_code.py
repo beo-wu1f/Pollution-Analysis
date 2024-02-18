@@ -60,7 +60,7 @@ def create_and_save_data(city_name, country_code, api_key, num_days):
         try:
             for i in range(num_days):
                 # Calculate timestamps for a single day
-                past_date = (datetime.datetime.today() - datetime.timedelta(days=i)).strftime('%Y-%m-%d')
+                past_date = datetime.datetime.today().date() - datetime.timedelta(days=i)
                 start_timestamp = int(datetime.datetime(past_date.year, past_date.month, past_date.day, 0, 0).timestamp())
                 end_timestamp = int(datetime.datetime(past_date.year, past_date.month, past_date.day, 23, 59).timestamp())
 
