@@ -112,7 +112,7 @@ def create_and_save_data(city_name, country_code, api_key, range):
 
 
         except Exception as e:
-        print(f"Error: {e}")
+            print(f"Error: {e}")
 
     else:
         print(f"Error: Geocoding API returned status code {geo_response.status_code}")        
