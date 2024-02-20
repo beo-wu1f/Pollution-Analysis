@@ -3,16 +3,10 @@ import os
 import json
 import datetime
 import pandas as pd
+import sqlite3
+import glob
 
 pollutants = ["co", "no", "no2", "o3", "so2", "pm2_5", "pm10", "nh3"]
-
-def fetch_air_pollution_data(latitude, longitude, api_key):
-    air_url = f"http://api.openweathermap.org/data/2.5/air_pollution?lat={latitude}&lon={longitude}&appid={api_key}"
-    air_response = requests.get(air_url)
-    if air_response.status_code == 200:
-        return air_response.json()
-    else:
-        raise Exception(f"Air pollution API returned status code {air_response.status_code}")
 
 def calculate_daily_averages(data):
     daily_averages = {}
@@ -33,58 +27,95 @@ def calculate_daily_averages(data):
 
     return daily_averages
 
-# Access the API key from the environment variable
-api_key = os.environ.get("OPENWEATHERMAP_API_KEY")
-
 # City information
 city_name = "Mumbai"
 country_code = "IN"
 
+# Access the API key from the environment variable
+api_key = os.environ.get("OPENWEATHERMAP_API_KEY")
+
 # Geocoding API endpoint
 geo_url = f"http://api.openweathermap.org/geo/1.0/direct?q={city_name},{country_code}&appid={api_key}"
 
-# Send geocoding request
-geo_response = requests.get(geo_url)
+# number of days you want data of
+num_days = 10
 
-# Check response status
-if geo_response.status_code == 200:
-    geo_data = geo_response.json()
-    latitude = geo_data[0]["lat"]
-    longitude = geo_data[0]["lon"]
+# Create a directory with today's date in YYYY-MM-DD format
+today = datetime.datetime.today().strftime("%Y-%m-%d")
+data_dir = os.path.join("data", today)
+os.makedirs(data_dir, exist_ok=True)
+print(f"Directory created: {data_dir}")
 
-    try:
-        for i in range(10):
-            # Calculate timestamps for a single day
-            past_date = datetime.datetime.today().date() - datetime.timedelta(days=i)
-            start_timestamp = int(datetime.datetime(past_date.year, past_date.month, past_date.day, 0, 0).timestamp())
-            end_timestamp = int(datetime.datetime(past_date.year, past_date.month, past_date.day, 23, 59).timestamp())
+def create_and_save_data(city_name, country_code, api_key, num_days):
+    """Fetches air pollution data, creates CSV, and stores data in SQLite."""
+    # Send geocoding request
+    geo_response = requests.get(geo_url)
 
-            historical_url = f"http://api.openweathermap.org/data/2.5/air_pollution/history?lat={latitude}&lon={longitude}&start={start_timestamp}&end={end_timestamp}&appid={api_key}"
-            historical_response = requests.get(historical_url)
+    # Check response status
+    if geo_response.status_code == 200:
+        geo_data = geo_response.json()
+        latitude = geo_data[0]["lat"]
+        longitude = geo_data[0]["lon"]
+        print("Latitudes and Longitudes received")
+        
+        try:
+            # SQLite database handling
+            db_path = os.path.join(data_dir, 'air_quality.db')
+            conn = sqlite3.connect(db_path)
+            c = conn.cursor()
 
-            if historical_response.status_code == 200:
-                historical_data = historical_response.json()
+            c.execute('''CREATE TABLE IF NOT EXISTS air_quality (
+            date text,
+            co real,
+            no real,
+            no2 real,
+            o3 real,
+            so2 real,
+            pm2_5 real,
+            pm10 real,
+            nh3 real
+            )''')
 
-                # Calculate daily averages for this day's data
-                daily_averages = calculate_daily_averages(historical_data)  
+            for i in range(num_days):
+                # Calculate timestamps for a single day
+                past_date = datetime.datetime.today().date() - datetime.timedelta(days=i)
+                start_timestamp = int(datetime.datetime(past_date.year, past_date.month, past_date.day, 0, 0).timestamp())
+                end_timestamp = int(datetime.datetime(past_date.year, past_date.month, past_date.day, 23, 59).timestamp())
 
-                # Generate CSV for this day
-                for date, air_quality in daily_averages.items():
-                    df = pd.DataFrame(air_quality, index=[0])
-                    filename = f"{date}.csv"
-                    df.to_csv(filename, index=False)
+                historical_url = f"http://api.openweathermap.org/data/2.5/air_pollution/history?lat={latitude}&lon={longitude}&start={start_timestamp}&end={end_timestamp}&appid={api_key}"
+                historical_response = requests.get(historical_url)
 
-            else:
-                print(f"Error fetching historical data for {past_date.strftime('%Y-%m-%d')}: {historical_response.status_code}")
+                if historical_response.status_code == 200:
+                    historical_data = historical_response.json()
 
-        # Combine CSVs 
-        import glob
-        all_files = glob.glob('*.csv')
-        combined_df = pd.concat([pd.read_csv(f) for f in all_files])
-        combined_df.to_csv('combined_air_quality.csv', index=False)
+                    # Calculate daily averages for this day's data
+                    daily_averages = calculate_daily_averages(historical_data) 
+                    print("Daily averages calculated")
+                  
+                    # Generate CSV for this day and save in the directory
+                    for date, air_quality in daily_averages.items():
+                        df = pd.DataFrame(air_quality, index=[0])
+                        csv_path = os.path.join(data_dir, f"{date}.csv")
+                        df.to_csv(csv_path, index=False)
+                        print(" CSV Created")
 
-    except Exception as e:
-        print(f"Error: {e}")
+                    # Insert data into the database
+                    for date, air_quality in daily_averages.items():
+                        c.execute("INSERT INTO air_quality VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                                (date, air_quality['co'], air_quality['no'], air_quality['no2'], air_quality['o3'], 
+                                    air_quality['so2'], air_quality['pm2_5'], air_quality['pm10'], air_quality['nh3']))
 
-else:
-    print(f"Error: Geocoding API returned status code {geo_response.status_code}")
+                else:
+                    print(f"Error fetching historical data for {past_date.strftime('%Y-%m-%d')}: {historical_response.status_code}")
+
+            conn.commit()
+            conn.close()
+            print("code executed, database created")
+
+        except Exception as e:
+            print(f"Error: {e}")
+
+    else:
+        print(f"Error: Geocoding API returned status code {geo_response.status_code}")        
+
+create_and_save_data(city_name, country_code, api_key, num_days)
