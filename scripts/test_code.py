@@ -40,7 +40,7 @@ geo_url = f"http://api.openweathermap.org/geo/1.0/direct?q={city_name},{country_
 # number of days you want data of
 num_days = 10
 
- # Create a directory with today's date in YYYY-MM-DD format
+# Create a directory with today's date in YYYY-MM-DD format
 today = datetime.datetime.today().strftime("%Y-%m-%d")
 data_dir = os.path.join("data", today)
 os.makedirs(data_dir, exist_ok=True)
@@ -59,8 +59,22 @@ def create_and_save_data(city_name, country_code, api_key, num_days):
         print("Latitudes and Longitudes received")
         
         try:
-            # Create an empty DataFrame to store all daily data
-            combined_df = pd.DataFrame(columns=pollutants + ['date'])
+            # SQLite database handling
+            db_path = os.path.join(data_dir, 'air_quality.db')
+            conn = sqlite3.connect(db_path)
+            c = conn.cursor()
+
+            c.execute('''CREATE TABLE IF NOT EXISTS air_quality (
+            date text,
+            co real,
+            no real,
+            no2 real,
+            o3 real,
+            so2 real,
+            pm2_5 real,
+            pm10 real,
+            nh3 real
+            )''')
 
             for i in range(num_days):
                 # Calculate timestamps for a single day
@@ -84,36 +98,15 @@ def create_and_save_data(city_name, country_code, api_key, num_days):
                         csv_path = os.path.join(data_dir, f"{date}.csv")
                         df.to_csv(csv_path, index=False)
                         print(" CSV Created")
-                    
+
+                    # Insert data into the database
+                    for date, air_quality in daily_averages.items():
+                        c.execute("INSERT INTO air_quality VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                                (date, air_quality['co'], air_quality['no'], air_quality['no2'], air_quality['o3'], 
+                                    air_quality['so2'], air_quality['pm2_5'], air_quality['pm10'], air_quality['nh3']))
+
                 else:
                     print(f"Error fetching historical data for {past_date.strftime('%Y-%m-%d')}: {historical_response.status_code}")
-
-            # Combine all CSVs into a single DataFrame
-            all_files = glob.glob(os.path.join(data_dir, '*.csv'))
-            combined_df = pd.concat([pd.read_csv(f) for f in all_files], ignore_index=True)
-            combined_df.to_csv(os.path.join(data_dir, 'combined_air_quality.csv'), index=False)
-
-            # SQLite database handling
-            db_path = os.path.join(data_dir, 'air_quality.db')
-            conn = sqlite3.connect(db_path)
-            c = conn.cursor()
-
-            c.execute('''CREATE TABLE IF NOT EXISTS air_quality (
-            date text,
-            co real,
-            no real,
-            no2 real,
-            o3 real,
-            so2 real,
-            pm2_5 real,
-            pm10 real,
-            nh3 real
-            )''')
-
-            for date, air_quality in daily_averages.items():
-                c.execute("INSERT INTO air_quality VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                        (date, air_quality['co'], air_quality['no'], air_quality['no2'], air_quality['o3'], 
-                            air_quality['so2'], air_quality['pm2_5'], air_quality['pm10'], air_quality['nh3']))
 
             conn.commit()
             conn.close()
