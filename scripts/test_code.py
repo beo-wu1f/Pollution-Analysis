@@ -27,12 +27,12 @@ def fetch_and_print_data(city_name, country_code, api_key):
             weather_url = f"https://api.openweathermap.org/data/2.5/weather?lat={latitude}&lon={longitude}&appid={api_key}"
             weather_response = requests.get(weather_url)
             
-            if weather_response.statuscode == 200:
+            if weather_response.status_code == 200:
                 weather_data = weather_response.json()
                 print(weather_data)
 
             else:
-                    print(f"Error fetching weather data for {weather_response.status_code}")
+                print(f"Error fetching weather data for {latitude}, {longitude}: {weather_response.status_code}")
         except Exception as e:
             print(f"Error: {e}")
 
