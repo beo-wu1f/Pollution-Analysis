@@ -42,8 +42,7 @@ def fetch_and_print_data(city_name, country_code, api_key):
             print(f"The temperature stands at a comfortable {weather_data['main']['temp']} Kelvin, but it feels like {weather_data['main']['feels_like']} Kelvin.")  
             print(f"Expect a humidity of {weather_data['main']['humidity']}% today. Winds are coming from the {get_wind_direction(weather_data['wind']['deg'])} at {weather_data['wind']['speed']} meters per second.") 
             print("Remember folks, always be prepared for the elements! That's your Mumbai weather update.\n")
-
-
+            
             else:
                 print(f"Error fetching weather data for {latitude}, {longitude}: {weather_response.status_code}")
         except Exception as e:
