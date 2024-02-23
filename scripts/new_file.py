@@ -93,3 +93,25 @@ for city_name, data in datasets.items():
         plt.xticks(rotation=45)
         plt.tight_layout()
         plt.show()
+
+# Correlation Analysis and Heatmaps
+for city_name in ['Mumbai', 'Delhi']:  # Target Mumbai and Delhi specifically
+    mumbai_weather = datasets[f"{city_name} Weather"]
+    mumbai_pollution = datasets[f"{city_name} Pollution"]
+
+    # Create a DataFrame 
+    df = pd.DataFrame({
+        'Temperature': mumbai_weather['main']['temp'],
+        'Humidity':  mumbai_weather['main']['humidity'],
+        'PM2.5': mumbai_pollution['list'][0]['components']['pm2_5'],
+        # Add more pollutants or weather variables if desired
+    })
+
+    # Calculate correlations
+    corr_matrix = df.corr()
+
+    # Generate Heatmap
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(corr_matrix, annot=True, cmap='coolwarm') 
+    plt.title(f"Correlation Heatmap - {city_name}")
+    plt.show()
