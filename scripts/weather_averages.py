@@ -1,3 +1,6 @@
+# This code fetches historical weather data for Mumbai over the past 10 days, calculates daily averages, 
+# and generates a line plot visualizing the average pollutant concentrations over that time.
+
 import requests
 import os
 import json
