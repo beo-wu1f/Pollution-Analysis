@@ -67,8 +67,8 @@ for city in cities:
 
 
 # Basic Visualizations
-for city_name, data_type in datasets.keys():
-    data = datasets[city_name]
+for city_name, data in datasets.items():
+    data_type = city_name.split()[1]  # Extracting data type from the key
 
     if data_type.endswith('Weather'):
         print(f"\nGenerating plots for {city_name} Weather")
