@@ -1,3 +1,6 @@
+# This code fetches historical air pollution data for Mumbai for the past 10 days, calculates daily averages, 
+# and stores the data both into CSV files and a SQLite database.
+
 import requests
 import os
 import json
