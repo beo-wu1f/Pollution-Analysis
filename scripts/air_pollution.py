@@ -1,3 +1,6 @@
+# This code fetches the current air pollution data for Mumbai from the OpenWeatherMap API and 
+# presents it in a textual format. It also creates a bar chart visualization of pollutant concentrations.
+
 import requests
 import os
 import json
