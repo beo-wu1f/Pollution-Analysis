@@ -1,3 +1,6 @@
+# This code interacts with the SQLite database created in Code 4. It demonstrates SQL queries to fetch all data, 
+# view data from the last 5 days, and find the day with the highest CO pollution.
+
 import sqlite3
 import pandas as pd
 
