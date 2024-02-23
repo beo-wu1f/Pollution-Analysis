@@ -1,18 +1,28 @@
-# Weather-analysis
+## Mumbai Weather and Air Pollution Analysis Project 
 
- ## My first repository - A data engineering project about analysing pollution
+This project, created by Rishi Kant, an aspiring Data Engineer, focuses on collecting, analyzing, and visualizing weather and air pollution data for the city of Mumbai. The project utilizes the OpenWeatherMap API to fetch current and historical data.
 
-This repository delves into pollution analysis using Python, focusing on:
+**Key Features**
 
-* Data-driven discovery: Unearthing patterns and trends in pollution data.
-Visual storytelling: Bringing insights to life with captivating visualizations.
-Feature development: Creating practical tools for data enthusiasts.
+*  Fetches current air pollution and weather data.
+*  Calculates and visualizes historical air pollution trends (10-day averages).
+*  Stores data in CSV files and a SQLite database.
+*  Provides insights through SQL queries on the stored data.
 
-* Stay tuned for:
-Installation guide & upcoming analysis, visualizations, and features.
+**How to Use**
 
-* Join the journey:
+1.  Obtain an API key from OpenWeatherMap (https://openweathermap.org/).
+2.  Set the `API_KEY` environment variable. 
+3.  Install dependencies: `pip install requests pandas matplotlib sqlite3`
+4.  Run the individual Python scripts.
 
-Explore the code, share your thoughts, and contribute!
+**Project Structure**
 
-P.S. I'm Rishi, a data engineering student. Let's chat Data Engineering and analyses !
+* `code1_air_pollution.py`
+* `code2_weather.py`
+* `code3_weather_averages.py`
+* `code4_data_storage.py`
+* `code5_database_queries.py`
+* `data/` (Directory to store CSV files and the database)
+
+**Feel free to contribute or provide feedback!**
