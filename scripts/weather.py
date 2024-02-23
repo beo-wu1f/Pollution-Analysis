@@ -1,3 +1,6 @@
+#This code retrieves the current weather conditions for Mumbai from the OpenWeatherMap API and presents 
+# the weather in a user-friendly, announcer-style format.
+
 import os
 import requests
 import json
